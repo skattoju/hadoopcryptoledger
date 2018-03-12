@@ -148,10 +148,10 @@ public class EthereumBlockReader {
 		
 			EthereumTransaction currentTransaction = new EthereumTransaction();
 			currentTransaction.setNonce(((RLPElement)currenTransactionRLP.getRlpList().get(0)).getRawData());
-			currentTransaction.setGasPrice(EthereumUtil.convertVarNumberToLong(((RLPElement)currenTransactionRLP.getRlpList().get(1))));
-			currentTransaction.setGasLimit(EthereumUtil.convertVarNumberToLong((RLPElement)currenTransactionRLP.getRlpList().get(2)));
+			currentTransaction.setGasPrice(EthereumUtil.convertVarNumberBigInteger(((RLPElement)currenTransactionRLP.getRlpList().get(1))));
+			currentTransaction.setGasLimit(EthereumUtil.convertVarNumberBigInteger((RLPElement)currenTransactionRLP.getRlpList().get(2)));
 			currentTransaction.setReceiveAddress(((RLPElement)currenTransactionRLP.getRlpList().get(3)).getRawData());
-			currentTransaction.setValue(EthereumUtil.convertVarNumberToLong(((RLPElement)currenTransactionRLP.getRlpList().get(4))));
+			currentTransaction.setValue(EthereumUtil.convertVarNumberBigInteger(((RLPElement)currenTransactionRLP.getRlpList().get(4))));
 
 			currentTransaction.setData(((RLPElement)currenTransactionRLP.getRlpList().get(5)).getRawData());
 			if (((RLPElement)currenTransactionRLP.getRlpList().get(6)).getRawData().length>0) {

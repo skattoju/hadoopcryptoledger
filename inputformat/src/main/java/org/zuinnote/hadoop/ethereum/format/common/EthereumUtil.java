@@ -52,9 +52,10 @@ public class EthereumUtil {
 	public static final int CHAIN_ID_INC = 35; // EIP-255, chainId encoded in V
 	public static final int LOWER_REAL_V = 27; // EIP-255, chainId encoded in V
 	public static final int HASH_SIZE = 256;
-	public static final int LONG_SIZE=8; // Size of a long in Ethereum
-	public static final int INT_SIZE=4; // Size of an integer in Ethereum
-	public static final int WORD_SIZE=2; // Size of a word in Ethereum
+	public static final int BIGINTEGER_SIZE = 32; //Size of a BigInteger field in Ethereum in Bytes
+	public static final int LONG_SIZE=8; // Size of a long in Ethereum in Bytes
+	public static final int INT_SIZE=4; // Size of an integer in Ethereum in Bytes
+	public static final int WORD_SIZE=2; // Size of a word in Ethereum in Bytes
 	public static final byte[] EMPTY_BYTE_ARRAY= new byte[0];
 
 	
@@ -379,10 +380,10 @@ public static Long calculateChainId(EthereumTransaction eTrans) {
 public static byte[] getTransactionHash(EthereumTransaction eTrans) {
 	ArrayList<byte[]> rlpTransaction = new ArrayList<>();
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getNonce()));
-	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertLongToVarInt(eTrans.getGasPrice())));
-	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertLongToVarInt(eTrans.getGasLimit())));
+	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertBigIntegerToVarNumber(eTrans.getGasPrice())));
+	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertBigIntegerToVarNumber(eTrans.getGasLimit())));
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getReceiveAddress()));
-	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertLongToVarInt(eTrans.getValue())));
+	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertBigIntegerToVarNumber(eTrans.getValue())));
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getData()));
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getSig_v()));
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getSig_r()));
@@ -402,10 +403,10 @@ public static byte[] getTransactionHash(EthereumTransaction eTrans) {
 public static byte[] getTransactionHashWithoutSignature(EthereumTransaction eTrans) {
 	ArrayList<byte[]> rlpTransaction = new ArrayList<>();
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getNonce()));
-	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertLongToVarInt(eTrans.getGasPrice())));
-	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertLongToVarInt(eTrans.getGasLimit())));
+	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertBigIntegerToVarNumber(eTrans.getGasPrice())));
+	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertBigIntegerToVarNumber(eTrans.getGasLimit())));
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getReceiveAddress()));
-	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertLongToVarInt(eTrans.getValue())));
+	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertBigIntegerToVarNumber(eTrans.getValue())));
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getData()));
 	byte[] transEnc = EthereumUtil.encodeRLPList(rlpTransaction);
 	Keccak.Digest256 digest = new Keccak.Digest256();
@@ -423,10 +424,10 @@ public static byte[] getTransactionHashWithoutSignature(EthereumTransaction eTra
 public static byte[] getTransactionHashWithDummySignatureEIP155(EthereumTransaction eTrans) {
 	ArrayList<byte[]> rlpTransaction = new ArrayList<>();
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getNonce()));
-	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertLongToVarInt(eTrans.getGasPrice())));
-	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertLongToVarInt(eTrans.getGasLimit())));
+	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertBigIntegerToVarNumber(eTrans.getGasPrice())));
+	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertBigIntegerToVarNumber(eTrans.getGasLimit())));
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getReceiveAddress()));
-	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertLongToVarInt(eTrans.getValue())));
+	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.convertBigIntegerToVarNumber(eTrans.getValue())));
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(eTrans.getData()));
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(new byte[] {(byte) ((eTrans.getSig_v()[0]-EthereumUtil.CHAIN_ID_INC)/2)}));
 	rlpTransaction.add(EthereumUtil.encodeRLPElement(EthereumUtil.EMPTY_BYTE_ARRAY));
@@ -544,6 +545,34 @@ public static Long convertVarNumberToLong(RLPElement rpe) {
 		return result;
 }
 
+/***
+ * Converts a variable size number (e.g. byte,short,int,long) in a RLPElement to long
+ *
+ * @param rpe RLPElement containing a number
+ * @return number as long or null if not a correct number
+ */
+public static BigInteger convertVarNumberBigInteger(RLPElement rpe) {
+	BigInteger result = new BigInteger("0");
+	if (rpe.getRawData()!=null) {
+		if (rpe.getRawData().length==0) {
+			//result = new BigInteger("0");
+		} else
+		if (rpe.getRawData().length<2) {
+			result = BigInteger.valueOf((long)EthereumUtil.convertToByte(rpe));
+		} else if (rpe.getRawData().length<3) {
+			result = BigInteger.valueOf((long)EthereumUtil.convertToShort(rpe));
+		} else if (rpe.getRawData().length<5) {
+			result = BigInteger.valueOf((long)EthereumUtil.convertToInt(rpe));
+		} else if (rpe.getRawData().length<9) {
+			result= BigInteger.valueOf((long)EthereumUtil.convertToLong(rpe));
+		} else if (rpe.getRawData().length<33) {
+			result = EthereumUtil.convertToBigInteger(rpe);
+		}
+	}
+	return result;
+}
+
+
 /**
  * Converts a byte in a RLPElement to byte
  * 
@@ -638,6 +667,32 @@ public static Long convertToLong(RLPElement rpe) {
 	return result;
 }
 
+/**
+ * Converts a BigInteger in a RLPElement to BigInteger
+ *
+ * @param rpe RLP element containing a raw long
+ * @return BigInteger value or zero
+ */
+
+public static BigInteger convertToBigInteger(RLPElement rpe) {
+	BigInteger result = new BigInteger("0");
+	byte[] rawBytes=rpe.getRawData();
+	if ((rawBytes!=null)) {
+		// fill leading zeros
+		if (rawBytes.length<EthereumUtil.BIGINTEGER_SIZE) {
+			byte[] fullBytes=new byte[EthereumUtil.BIGINTEGER_SIZE];
+			int dtDiff=EthereumUtil.BIGINTEGER_SIZE-rawBytes.length;
+			for (int i=0;i<rawBytes.length;i++) {
+				fullBytes[dtDiff+i]=rawBytes[i];
+			}
+			result = new BigInteger(rawBytes);
+		} else {
+			result = new BigInteger(rawBytes);
+		}
+	}
+	return result;
+}
+
 /***
  * Converts long to variable number without leading zeros
  * 
@@ -660,6 +715,26 @@ public static byte[] convertLongToVarInt(long value) {
 		}
 	}
 	 return Arrays.copyOfRange(result, leadingZeros, result.length);
+}
+
+/***
+ * Converts long to variable number without leading zeros
+ *
+ * @param value
+ * @return byte array containing variable number (without leading zeros)
+ */
+public static byte[] convertBigIntegerToVarNumber(BigInteger value) {
+
+	byte[] result = value.toByteArray();
+	int leadingZeros=0;
+	for (int i=0;i<result.length;i++) {
+		if (result[i]==0) {
+			leadingZeros++;
+		} else {
+			break;
+		}
+	}
+	return Arrays.copyOfRange(result, leadingZeros, result.length);
 }
 
 /***

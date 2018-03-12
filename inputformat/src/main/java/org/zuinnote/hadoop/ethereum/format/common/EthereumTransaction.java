@@ -18,6 +18,7 @@ package org.zuinnote.hadoop.ethereum.format.common;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.math.BigInteger;
 
 import org.apache.hadoop.io.Writable;
 
@@ -28,10 +29,10 @@ import org.apache.hadoop.io.Writable;
 public class EthereumTransaction implements Writable {
 
 private byte[] nonce;
-private long value;
+private BigInteger value;
 private byte[] receiveAddress;
-private long gasPrice;
-private long gasLimit;
+private BigInteger gasPrice;
+private BigInteger gasLimit;
 
 private byte[] data;
 private byte[] sig_v;
@@ -60,11 +61,11 @@ public void setNonce(byte[] nonce) {
 	this.nonce = nonce;
 }
 
-public long getValue() {
+public BigInteger getValue() {
 	return value;
 }
 
-public void setValue(long value) {
+public void setValue(BigInteger value) {
 	this.value = value;
 }
 
@@ -77,19 +78,19 @@ public void setReceiveAddress(byte[] receiveAddress) {
 }
 
 
-public long getGasPrice() {
+public BigInteger getGasPrice() {
 	return gasPrice;
 }
 
-public void setGasPrice(long gasPrice) {
+public void setGasPrice(BigInteger gasPrice) {
 	this.gasPrice = gasPrice;
 }
 
-public long getGasLimit() {
+public BigInteger getGasLimit() {
 	return gasLimit;
 }
 
-public void setGasLimit(long gasLimit) {
+public void setGasLimit(BigInteger gasLimit) {
 	this.gasLimit = gasLimit;
 }
 
